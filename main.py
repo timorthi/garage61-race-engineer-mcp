@@ -1,6 +1,3 @@
-def main():
-    print("Hello from garage61-race-engineer-mcp!")
+from fastmcp import FastMCP
 
-
-if __name__ == "__main__":
-    main()
+mcp = FastMCP("garage61-race-engineer")
