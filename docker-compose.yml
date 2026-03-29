@@ -3,6 +3,8 @@ services:
     build: .
     ports:
       - "8000:8000"
+    volumes:
+      - .:/workspaces/garage61-race-engineer-mcp
     env_file:
       - .env
     # depends_on:
