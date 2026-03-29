@@ -1,0 +1,28 @@
+{
+  "name": "garage61-race-engineer-mcp",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "mcp",
+  "workspaceFolder": "/app",
+  "overrideCommand": true,
+
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "ms-python.debugpy"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/app/.venv/bin/python"
+      }
+    }
+  },
+
+  "postCreateCommand": "uv sync",
+  "remoteUser": "root"
+}
