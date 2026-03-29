@@ -1,15 +1,4 @@
-"""
-Garage61 API client.
-
-# ============================================================================
-# WARNING: TELEMETRY_COLUMNS MUST BE VERIFIED AGAINST A REAL API RESPONSE
-# The column names listed in TELEMETRY_COLUMNS below are ASSUMED based on
-# iRacing SDK conventions. They have NOT been confirmed against an actual
-# GET /laps/{id}/csv response from the Garage61 API.
-# Once a real response is available, update TELEMETRY_COLUMNS and re-run the
-# test suite. See docs/PROJECT_SPECS.md §13 "Confirm CSV column names".
-# ============================================================================
-"""
+"""Garage61 API client."""
 
 from __future__ import annotations
 
@@ -23,7 +12,7 @@ import httpx
 import pandas as pd
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from garage61.models import Car, FindLapsParams, LapDetail, LapSummary, Track
+from garage61.models import Car, FindLapsParams, LapDetail, LapSummary, TelemetrySample, Track
 from garage61.exceptions import (
     APIError,
     LapNotFoundError,
@@ -39,23 +28,6 @@ from garage61.constants import (
 from utils.lru_cache import LRUCache
 
 logger = logging.getLogger(__name__)
-
-# ---------------------------------------------------------------------------
-# Assumed telemetry CSV column names.
-# NOTE: These MUST be verified against a real GET /laps/{id}/csv response.
-# Update this list and re-run tests once confirmed. See module docstring.
-# ---------------------------------------------------------------------------
-TELEMETRY_COLUMNS: list[str] = [
-    "LapDistPct",         # Lap distance as 0.0–1.0 fraction
-    "Speed",              # Speed in m/s
-    "Throttle",           # Throttle position 0.0–1.0
-    "Brake",              # Brake pressure 0.0–1.0
-    "Gear",               # Current gear (integer)
-    "SteeringWheelAngle", # Steering angle in radians
-    "PositionType",       # Position type: 3 = on track
-]
-
-
 
 # Module-level static reference data, populated once by load_static_data().
 _TRACKS: list[Track] = []
@@ -257,7 +229,7 @@ class Garage61Client:
                 f"{lap_id} CSV: {response.text[:200]}"
             )
 
-        df = self._parse_telemetry_csv(response.text, lap_id, lap_length_m)
+        df = self._parse_telemetry_csv(response.text, lap_length_m)
         self._telemetry_cache.put(lap_id, df)
         logger.debug(
             "Fetched and cached telemetry for lap %s (%d on-track rows)",
@@ -269,29 +241,26 @@ class Garage61Client:
     @staticmethod
     def _parse_telemetry_csv(
         csv_text: str,
-        lap_id: str,
         lap_length_m: float,
     ) -> pd.DataFrame:
         """Parse raw CSV text into a filtered, distance-aligned DataFrame.
 
-        Validates that all ``TELEMETRY_COLUMNS`` are present, then:
-
-        - Filters to rows where ``PositionType == 3`` (on track).
-        - Adds ``distance_m = LapDistPct * lap_length_m``.
+        Validates the CSV schema by parsing the first row as a
+        ``TelemetrySample``. Filters to rows where ``PositionType == 3``
+        (on track) and adds ``distance_m = LapDistPct * lap_length_m``.
 
         Raises:
-            TelemetryParseError: If any expected column is absent.
+            TelemetryParseError: If the CSV schema does not match ``TelemetrySample``.
         """
         df = pd.read_csv(StringIO(csv_text))
 
-        missing = [col for col in TELEMETRY_COLUMNS if col not in df.columns]
-        if missing:
+        try:
+            TelemetrySample.from_api(df.iloc[0].to_dict())
+        except Exception as exc:
             raise TelemetryParseError(
-                f"Telemetry CSV for lap {lap_id} is missing expected columns: "
-                f"{missing}. Present columns: {list(df.columns)}. "
-                "Update TELEMETRY_COLUMNS in client.py once confirmed against "
-                "a real API response."
-            )
+                f"Telemetry CSV schema does not match TelemetrySample: {exc}. "
+                f"Present columns: {list(df.columns)}"
+            ) from exc
 
         df = df[df["PositionType"] == 3].copy()
         df["distance_m"] = df["LapDistPct"] * lap_length_m
