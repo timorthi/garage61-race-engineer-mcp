@@ -59,13 +59,30 @@ Track IDs and car IDs are **integers** (`int64`). Lap IDs are **strings**.
 
 ### Telemetry format
 
-Telemetry is a **CSV file** returned from `GET /laps/{id}/csv`. Known column:
+Telemetry is a **CSV file** returned from `GET /laps/{id}/csv`. Confirmed columns (verified against a real API response):
 
-| Column | Description |
-|---|---|
-| `PositionType` | `0`=Unknown, `1`=Pit lane, `2`=Pit stop, `3`=On track, `4`=Off track |
+| Column | Type | Description |
+|---|---|---|
+| `Speed` | float | Speed — m/s |
+| `LapDistPct` | float | Lap distance fraction 0.0–1.0 |
+| `Lat` | float | GPS latitude |
+| `Lon` | float | GPS longitude |
+| `Brake` | float | Brake pressure 0.0–1.0 |
+| `Throttle` | float | Throttle position 0.0–1.0 |
+| `RPM` | float | Engine RPM |
+| `SteeringWheelAngle` | float | Steering angle — radians |
+| `Gear` | int | Current gear |
+| `Clutch` | float | Clutch position 0.0–1.0 |
+| `ABSActive` | bool | ABS active flag |
+| `DRSActive` | bool | DRS active flag |
+| `LatAccel` | float | Lateral acceleration — m/s² |
+| `LongAccel` | float | Longitudinal acceleration — m/s² |
+| `VertAccel` | float | Vertical acceleration — m/s² |
+| `Yaw` | float | Yaw angle — radians |
+| `YawRate` | float | Yaw rate — rad/s |
+| `PositionType` | int | `0`=Unknown, `1`=Pit lane, `2`=Pit stop, `3`=On track, `4`=Off track |
 
-> **Note**: The exact column names for Speed, Throttle, Brake, Gear, Steering, and Distance are not documented in the OpenAPI spec. They must be confirmed against a real API response. The client implementation should document its assumptions clearly and validate column presence at parse time.
+Each row is modelled by `TelemetrySample` in `src/garage61/models.py`.
 
 ---
 
@@ -86,7 +103,7 @@ Returns available tracks so the agent can resolve a track name to a numeric `tra
 }
 ```
 
-This is a thin wrapper over `GET /tracks`. Results may be cached for the lifetime of the server process.
+Track data is loaded from `static/tracks.json` at startup. iRacing track content changes at most a few times per season, so a live API call on every request is unnecessary overhead. If `static/tracks.json` is missing, the server falls back to `GET /tracks` and logs a warning. The same `/tracks` endpoint is used to (re-)seed the static file via the refresh CLI (see §13).
 
 ---
 
@@ -104,6 +121,8 @@ Returns available cars so the agent can resolve a car name to a numeric `car_id`
   ]
 }
 ```
+
+Same pattern as `list_tracks`: loaded from `static/cars.json` at startup, falls back to `GET /cars` if missing.
 
 ---
 
@@ -361,7 +380,7 @@ Tools return structured errors rather than raising exceptions. The LLM receives 
 
 Telemetry payloads are large (potentially 10–50MB per lap) and fetches are expensive. A simple LRU cache keyed on `lap_id` is maintained for the lifetime of the server process, capped at **10 laps** to bound memory use. A lap's telemetry is only fetched once per session.
 
-Track and car listings from `GET /tracks` and `GET /cars` are fetched once at startup and held in memory.
+Track and car data are loaded from `static/tracks.json` and `static/cars.json` at startup and held in memory. These files change infrequently (at most a few times per iRacing season) and are refreshed manually via the seed CLI rather than on every server start.
 
 ---
 
@@ -406,6 +425,9 @@ garage61-race-engineer-mcp/
 ├── track_maps/
 │   ├── 218.json               # Watkins Glen (numeric track_id, not slug)
 │   └── ...
+├── static/
+│   ├── tracks.json            # Seeded from GET /tracks; refresh manually each season
+│   └── cars.json              # Seeded from GET /cars; refresh manually each season
 ├── docs/
 │   └── garage61_openapi.json  # Full Garage61 OpenAPI spec
 ├── pyproject.toml
@@ -416,6 +438,7 @@ garage61-race-engineer-mcp/
 
 ## 13. Future Work / TODOs
 
-- [ ] **Confirm CSV column names**: Fetch a real `GET /laps/{id}/csv` response and update the assumed column mapping in `garage61_client.py`.
+- [x] **Confirm CSV column names**: Verified against a real `GET /laps/{id}/csv` response. Column table updated in §4; `TelemetrySample` model added to `src/garage61/models.py`.
+- [ ] **Static data seed CLI**: Build a small CLI tool (`scripts/seed_static.py`) that calls `GET /tracks` and `GET /cars` and writes the results to `static/tracks.json` and `static/cars.json`. Run once at setup and again when new iRacing content is released.
 - [ ] **Track map bootstrapping CLI**: Build a small CLI tool that runs a reference lap through the algorithmic corner detector and outputs a pre-filled `track_maps/{track_id}.json` stub with turn boundaries, ready for manual annotation.
 - [ ] **Multi-driver access**: When Garage61 exposes cross-user lap access, only `garage61_client.py` needs updating — tool output shapes are already designed for it.
