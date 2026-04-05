@@ -29,10 +29,10 @@ from garage61.constants import STATIC_DIR
 async def main() -> None:
     async with Garage61Client.from_env() as client:
         print("Fetching tracks...")
-        tracks = await client.get_tracks()
+        tracks = await client.get_tracks(use_cache=False)
 
         print("Fetching cars...")
-        cars = await client.get_cars()
+        cars = await client.get_cars(use_cache=False)
 
     STATIC_DIR.mkdir(parents=True, exist_ok=True)
     now = datetime.now().isoformat(timespec="seconds")
