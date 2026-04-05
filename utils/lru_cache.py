@@ -1,6 +1,7 @@
 from collections import OrderedDict
 import pandas
 
+
 class LRUCache:
     """Thread-unsafe in-process LRU cache for parsed telemetry DataFrames."""
 

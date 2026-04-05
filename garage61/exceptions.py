@@ -1,4 +1,5 @@
-from garage61.models import  Garage61Error
+from garage61.models import Garage61Error
+
 
 class Garage61ClientError(Exception):
     """Base class for all structured Garage61 client errors."""

@@ -14,7 +14,9 @@ class TestParseTelemetryCsv:
         df = Garage61Client._parse_telemetry_csv(valid_csv_text, LAP_LENGTH_M)
         assert "distance_m" in df.columns
 
-    def test_distance_m_equals_lap_dist_pct_times_lap_length(self, valid_csv_text: str) -> None:
+    def test_distance_m_equals_lap_dist_pct_times_lap_length(
+        self, valid_csv_text: str
+    ) -> None:
         df = Garage61Client._parse_telemetry_csv(valid_csv_text, LAP_LENGTH_M)
         expected = df["LapDistPct"] * LAP_LENGTH_M
         assert (df["distance_m"] - expected).abs().max() < 1e-9

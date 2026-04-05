@@ -74,6 +74,6 @@ def mixed_position_csv_text() -> str:
         _make_csv_row(speed=50.0, lap_dist_pct=0.10, position_type=3),
         _make_csv_row(speed=10.0, lap_dist_pct=0.50, position_type=1),  # pit lane
         _make_csv_row(speed=60.0, lap_dist_pct=0.70, position_type=3),
-        _make_csv_row(speed=5.0,  lap_dist_pct=0.90, position_type=4),  # off track
+        _make_csv_row(speed=5.0, lap_dist_pct=0.90, position_type=4),  # off track
     ]
     return "\n".join(rows)
