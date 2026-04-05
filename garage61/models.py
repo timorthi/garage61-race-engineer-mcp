@@ -11,7 +11,7 @@ class Track(BaseModel):
     track_id: int
     track_id_in_iracing: int
     name: str
-    variant: str
+    variant: Optional[str]
 
     @classmethod
     def from_api(cls, data: dict[str, Any]) -> Track:
@@ -19,7 +19,7 @@ class Track(BaseModel):
             track_id=int(data["id"]),
             track_id_in_iracing=int(data["platform_id"]),
             name=str(data["name"]),
-            variant=str(data['variant']),
+            variant=str(data["variant"]) if data["variant"] else None,
         )
 
 
@@ -128,24 +128,24 @@ class TelemetrySample(BaseModel):
     to Python bools.
     """
 
-    speed_mps: float             # Speed — m/s
-    lap_dist_pct: float          # Lap distance fraction 0.0–1.0
-    lat: float                   # GPS latitude
-    lon: float                   # GPS longitude
-    brake: float                 # Brake pressure 0.0–1.0
-    throttle: float              # Throttle position 0.0–1.0
-    rpm: float                   # Engine RPM
+    speed_mps: float  # Speed — m/s
+    lap_dist_pct: float  # Lap distance fraction 0.0–1.0
+    lat: float  # GPS latitude
+    lon: float  # GPS longitude
+    brake: float  # Brake pressure 0.0–1.0
+    throttle: float  # Throttle position 0.0–1.0
+    rpm: float  # Engine RPM
     steering_wheel_angle: float  # Steering angle — radians
-    gear: int                    # Current gear
-    clutch: float                # Clutch position 0.0–1.0
-    abs_active: bool             # ABS active flag
-    drs_active: bool             # DRS active flag
-    lat_accel: float             # Lateral acceleration — m/s²
-    long_accel: float            # Longitudinal acceleration — m/s²
-    vert_accel: float            # Vertical acceleration — m/s²
-    yaw: float                   # Yaw angle — radians
-    yaw_rate: float              # Yaw rate — rad/s
-    position_type: int           # 0=Unknown 1=Pit lane 2=Pit stop 3=On track 4=Off track
+    gear: int  # Current gear
+    clutch: float  # Clutch position 0.0–1.0
+    abs_active: bool  # ABS active flag
+    drs_active: bool  # DRS active flag
+    lat_accel: float  # Lateral acceleration — m/s²
+    long_accel: float  # Longitudinal acceleration — m/s²
+    vert_accel: float  # Vertical acceleration — m/s²
+    yaw: float  # Yaw angle — radians
+    yaw_rate: float  # Yaw rate — rad/s
+    position_type: int  # 0=Unknown 1=Pit lane 2=Pit stop 3=On track 4=Off track
 
     @classmethod
     def from_api(cls, row: dict[str, Any]) -> TelemetrySample:
