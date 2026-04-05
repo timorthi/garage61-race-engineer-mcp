@@ -9,24 +9,30 @@ from pydantic import BaseModel, Field
 
 class Track(BaseModel):
     track_id: int
+    track_id_in_iracing: int
     name: str
+    variant: str
 
     @classmethod
     def from_api(cls, data: dict[str, Any]) -> Track:
         return cls(
             track_id=int(data["id"]),
+            track_id_in_iracing=int(data["platform_id"]),
             name=str(data["name"]),
+            variant=str(data['variant']),
         )
 
 
 class Car(BaseModel):
     car_id: int
+    car_id_in_iracing: int
     name: str
 
     @classmethod
     def from_api(cls, data: dict[str, Any]) -> Car:
         return cls(
             car_id=int(data["id"]),
+            car_id_in_iracing=int(data["platform_id"]),
             name=str(data["name"]),
         )
 
