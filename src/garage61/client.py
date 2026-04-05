@@ -154,14 +154,12 @@ class Garage61Client:
     async def get_tracks(self) -> list[Track]:
         """Return all available tracks from GET /tracks."""
         data = await self._get("/tracks")
-        items: list[dict[str, Any]] = data if isinstance(data, list) else data.get("tracks", [])
-        return [Track.from_api(t) for t in items]
+        return [Track.from_api(t) for t in data['items']]
 
     async def get_cars(self) -> list[Car]:
         """Return all available cars from GET /cars."""
         data = await self._get("/cars")
-        items: list[dict[str, Any]] = data if isinstance(data, list) else data.get("cars", [])
-        return [Car.from_api(c) for c in items]
+        return [Car.from_api(c) for c in data['items']]
 
     async def find_laps(self, params: FindLapsParams) -> list[LapSummary]:
         """Search for laps matching the given parameters via GET /laps."""
