@@ -70,7 +70,7 @@ async def load_static_data(client: Garage61Client) -> None:
     cars_path = STATIC_DIR / "cars.json"
 
     try:
-        _TRACKS = [Track(**t) for t in json.loads(tracks_path.read_text())]
+        _TRACKS = [Track(**t) for t in json.loads(tracks_path.read_text())["tracks"]]
         logger.debug("Loaded %d tracks from %s", len(_TRACKS), tracks_path)
     except FileNotFoundError:
         logger.warning(
@@ -78,10 +78,10 @@ async def load_static_data(client: Garage61Client) -> None:
             "Run scripts/seed_static.py to generate the static file and "
             "avoid this API call on every server start."
         )
-        _TRACKS = await client.get_tracks()
+        _TRACKS = await client.get_tracks(use_cache=False)
 
     try:
-        _CARS = [Car(**c) for c in json.loads(cars_path.read_text())]
+        _CARS = [Car(**c) for c in json.loads(cars_path.read_text())["cars"]]
         logger.debug("Loaded %d cars from %s", len(_CARS), cars_path)
     except FileNotFoundError:
         logger.warning(
@@ -89,7 +89,7 @@ async def load_static_data(client: Garage61Client) -> None:
             "Run scripts/seed_static.py to generate the static file and "
             "avoid this API call on every server start."
         )
-        _CARS = await client.get_cars()
+        _CARS = await client.get_cars(use_cache=False)
 
 
 # ---------------------------------------------------------------------------
@@ -163,21 +163,21 @@ class Garage61Client:
     async def get_tracks(self, use_cache: bool) -> list[Track]:
         """Return all available tracks from GET /tracks."""
         if use_cache and _TRACKS:
+            logger.debug("get_tracks(): Returning cached tracks ")
             return _TRACKS
+        logger.debug("get_tracks(): Fetching tracks from API")
         data = await self._get("/tracks")
-        items: list[dict[str, Any]] = (
-            data if isinstance(data, list) else data.get("tracks", [])
-        )
+        items: list[dict[str, Any]] = data if isinstance(data, list) else data["items"]
         return [Track.from_api(t) for t in items]
 
     async def get_cars(self, use_cache: bool) -> list[Car]:
         """Return all available cars from GET /cars."""
         if use_cache and _CARS:
+            logger.debug("get_cars(): Returning cached cars")
             return _CARS
+        logger.debug("get_cars(): Fetching cars from API")
         data = await self._get("/cars")
-        items: list[dict[str, Any]] = (
-            data if isinstance(data, list) else data.get("cars", [])
-        )
+        items: list[dict[str, Any]] = data if isinstance(data, list) else data["items"]
         return [Car.from_api(c) for c in items]
 
     async def find_laps(self, params: FindLapsParams) -> list[LapSummary]:
