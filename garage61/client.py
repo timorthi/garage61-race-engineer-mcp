@@ -160,21 +160,17 @@ class Garage61Client:
     # Public API methods
     # ------------------------------------------------------------------
 
-    async def get_tracks(self, use_cache: bool) -> list[Track]:
+    async def get_tracks(self) -> list[Track]:
         """Return all available tracks from GET /tracks."""
-        if use_cache and _TRACKS:
-            return _TRACKS
-        logging.debug("GET /tracks")
         data = await self._get("/tracks")
-        return [Track.from_api(t) for t in data["items"]]
+        items: list[dict[str, Any]] = data if isinstance(data, list) else data.get("tracks", [])
+        return [Track.from_api(t) for t in items]
 
-    async def get_cars(self, use_cache: bool) -> list[Car]:
+    async def get_cars(self) -> list[Car]:
         """Return all available cars from GET /cars."""
-        if use_cache and _CARS:
-            return _CARS
-        logging.debug("GET /cars")
         data = await self._get("/cars")
-        return [Car.from_api(c) for c in data["items"]]
+        items: list[dict[str, Any]] = data if isinstance(data, list) else data.get("cars", [])
+        return [Car.from_api(c) for c in items]
 
     async def find_laps(self, params: FindLapsParams) -> list[LapSummary]:
         """Search for laps matching the given parameters via GET /laps."""
