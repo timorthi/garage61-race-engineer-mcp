@@ -15,12 +15,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-import sys
-from pathlib import Path
 from datetime import datetime
-
-# Allow importing from src/ without installing the package.
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from garage61.client import Garage61Client
 from garage61.constants import STATIC_DIR
