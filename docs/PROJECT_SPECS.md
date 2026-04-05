@@ -439,6 +439,6 @@ garage61-race-engineer-mcp/
 ## 13. Future Work / TODOs
 
 - [x] **Confirm CSV column names**: Verified against a real `GET /laps/{id}/csv` response. Column table updated in §4; `TelemetrySample` model added to `src/garage61/models.py`.
-- [ ] **Static data seed CLI**: Build a small CLI tool (`scripts/seed_static.py`) that calls `GET /tracks` and `GET /cars` and writes the results to `static/tracks.json` and `static/cars.json`. Run once at setup and again when new iRacing content is released.
+- [x] **Static data seed CLI**: Build a small CLI tool (`scripts/seed_static.py`) that calls `GET /tracks` and `GET /cars` and writes the results to `static/tracks.json` and `static/cars.json`. Run once at setup and again when new iRacing content is released.
 - [ ] **Track map bootstrapping CLI**: Build a small CLI tool that runs a reference lap through the algorithmic corner detector and outputs a pre-filled `track_maps/{track_id}.json` stub with turn boundaries, ready for manual annotation.
 - [ ] **Multi-driver access**: When Garage61 exposes cross-user lap access, only `garage61_client.py` needs updating — tool output shapes are already designed for it.
