@@ -115,7 +115,7 @@ class Garage61Client:
     @classmethod
     def from_env(cls) -> Garage61Client:
         """Create a client from the ``GARAGE61_API_KEY`` environment variable."""
-        settings = _Settings()
+        settings = _Settings()  # ty: ignore[missing-argument]
         return cls(api_key=settings.garage61_api_key)
 
     async def close(self) -> None:
