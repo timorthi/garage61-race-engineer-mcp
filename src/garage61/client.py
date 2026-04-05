@@ -12,7 +12,14 @@ import httpx
 import pandas as pd
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from garage61.models import Car, FindLapsParams, LapDetail, LapSummary, TelemetrySample, Track
+from garage61.models import (
+    Car,
+    FindLapsParams,
+    LapDetail,
+    LapSummary,
+    TelemetrySample,
+    Track,
+)
 from garage61.exceptions import (
     APIError,
     LapNotFoundError,
@@ -38,16 +45,17 @@ _CARS: list[Car] = []
 # Settings
 # ---------------------------------------------------------------------------
 
+
 class _Settings(BaseSettings):
     garage61_api_key: str
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
-
 # ---------------------------------------------------------------------------
 # Static data loader
 # ---------------------------------------------------------------------------
+
 
 async def load_static_data(client: Garage61Client) -> None:
     """Load track and car reference data into module-level variables.
@@ -87,6 +95,7 @@ async def load_static_data(client: Garage61Client) -> None:
 # ---------------------------------------------------------------------------
 # API client
 # ---------------------------------------------------------------------------
+
 
 class Garage61Client:
     """Async Garage61 API client.
@@ -154,14 +163,12 @@ class Garage61Client:
     async def get_tracks(self) -> list[Track]:
         """Return all available tracks from GET /tracks."""
         data = await self._get("/tracks")
-        items: list[dict[str, Any]] = data if isinstance(data, list) else data.get("tracks", [])
-        return [Track.from_api(t) for t in items]
+        return [Track.from_api(t) for t in data["items"]]
 
     async def get_cars(self) -> list[Car]:
         """Return all available cars from GET /cars."""
         data = await self._get("/cars")
-        items: list[dict[str, Any]] = data if isinstance(data, list) else data.get("cars", [])
-        return [Car.from_api(c) for c in items]
+        return [Car.from_api(c) for c in data["items"]]
 
     async def find_laps(self, params: FindLapsParams) -> list[LapSummary]:
         """Search for laps matching the given parameters via GET /laps."""
@@ -177,7 +184,9 @@ class Garage61Client:
             minConditionsTrackTemp=params.min_track_temp,
             maxConditionsTrackTemp=params.max_track_temp,
         )
-        items: list[dict[str, Any]] = data if isinstance(data, list) else data.get("laps", [])
+        items: list[dict[str, Any]] = (
+            data if isinstance(data, list) else data.get("laps", [])
+        )
         return [LapSummary.from_api(lap) for lap in items]
 
     async def get_lap(self, lap_id: str) -> LapDetail:
