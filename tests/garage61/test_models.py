@@ -35,15 +35,21 @@ class TestTelemetrySampleFromApi:
         assert sample.yaw_rate == 0.02
         assert sample.position_type == 3
 
-    def test_abs_active_string_true_normalises_to_bool(self, sample_row_dict: dict) -> None:
+    def test_abs_active_string_true_normalises_to_bool(
+        self, sample_row_dict: dict
+    ) -> None:
         sample_row_dict["ABSActive"] = "true"
         assert TelemetrySample.from_api(sample_row_dict).abs_active is True
 
-    def test_abs_active_string_false_normalises_to_bool(self, sample_row_dict: dict) -> None:
+    def test_abs_active_string_false_normalises_to_bool(
+        self, sample_row_dict: dict
+    ) -> None:
         sample_row_dict["ABSActive"] = "false"
         assert TelemetrySample.from_api(sample_row_dict).abs_active is False
 
-    def test_drs_active_string_true_normalises_to_bool(self, sample_row_dict: dict) -> None:
+    def test_drs_active_string_true_normalises_to_bool(
+        self, sample_row_dict: dict
+    ) -> None:
         sample_row_dict["DRSActive"] = "true"
         assert TelemetrySample.from_api(sample_row_dict).drs_active is True
 
@@ -68,7 +74,9 @@ class TestTelemetrySampleFromApi:
         with pytest.raises(KeyError):
             TelemetrySample.from_api(sample_row_dict)
 
-    def test_missing_boolean_column_raises_key_error(self, sample_row_dict: dict) -> None:
+    def test_missing_boolean_column_raises_key_error(
+        self, sample_row_dict: dict
+    ) -> None:
         del sample_row_dict["ABSActive"]
         with pytest.raises(KeyError):
             TelemetrySample.from_api(sample_row_dict)
@@ -78,11 +86,11 @@ class TestExceptionToModel:
     @pytest.mark.parametrize(
         "exc_class, expected_code, expected_recoverable",
         [
-            (LapNotFoundError,        "lap_not_found",         False),
+            (LapNotFoundError, "lap_not_found", False),
             (TelemetryUnavailableError, "telemetry_unavailable", False),
-            (TelemetryParseError,     "telemetry_parse_error", False),
-            (APIError,                "api_error",             False),
-            (NoLapsFoundError,        "no_laps_found",         True),
+            (TelemetryParseError, "telemetry_parse_error", False),
+            (APIError, "api_error", False),
+            (NoLapsFoundError, "no_laps_found", True),
         ],
     )
     def test_to_model_error_code_and_recoverable(
